@@ -1,0 +1,45 @@
+<html>
+<head>
+<title>coffee</title>
+<link href="nv.d3.css" rel="stylesheet" type="text/css">
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="nv.d3.js"></script>
+</head>
+
+<body>
+<h1>mmm coffee</h1>
+
+<svg id="chart" style="height: 500px"></svg>
+
+<script>
+var chart;
+
+d3.json("http://localhost:8080/data.json", function(json) {
+nv.addGraph(function() {
+		chart = nv.models.multiBarChart()
+		.reduceXTicks(true)
+		;
+
+		chart.yAxis
+			.tickFormat(d3.format('.0f'));
+
+		var svgThing = d3.select("svg#chart");
+		svgThing.datum(json);
+		svgThing.call(chart);
+
+		nv.utils.windowResize(chart.update);
+
+		return chart;
+		}
+		)
+});
+
+window.setInterval(function() {
+	d3.json("http://localhost:8080/data.json", function(json) {
+		d3.select("svg#chart").datum(json).call(chart);
+		})}, 10000);
+
+</script>
+
+</body>
+</html>
