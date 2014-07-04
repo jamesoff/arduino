@@ -18,6 +18,7 @@ volatile int rightMachine = 0;
 volatile unsigned long leftTime = 0;
 volatile unsigned long rightTime = 0;
 
+volatile bool needUpdate = true;
 
 
 void setup() {
@@ -37,25 +38,27 @@ void setup() {
 
 void loop() {
 	// put your main code here, to run repeatedly:
+	if (needUpdate) {
+		Serial.print("{\"left\":");
+		Serial.print(leftMachine);
+		Serial.print(", \"right\":");
+		Serial.print(rightMachine);
+		Serial.println("}");
 
-	Serial.print("{\"left\":");
-	Serial.print(leftMachine);
-	Serial.print("; \"right\":");
-	Serial.print(rightMachine);
-	Serial.println("}");
-
-	if (leftMachine > rightMachine) {
-		digitalWrite(LEFT_LED, HIGH);
-		digitalWrite(RIGHT_LED, LOW);
+		if (leftMachine > rightMachine) {
+			digitalWrite(LEFT_LED, HIGH);
+			digitalWrite(RIGHT_LED, LOW);
+		}
+		else if (leftMachine < rightMachine) {
+			digitalWrite(LEFT_LED, LOW);
+			digitalWrite(RIGHT_LED, HIGH);
+		}
+		else {
+			digitalWrite(LEFT_LED, HIGH);
+			digitalWrite(RIGHT_LED, HIGH);
+		}
 	}
-	else if (leftMachine < rightMachine) {
-		digitalWrite(LEFT_LED, LOW);
-		digitalWrite(RIGHT_LED, HIGH);
-	}
-	else {
-		digitalWrite(LEFT_LED, HIGH);
-		digitalWrite(RIGHT_LED, HIGH);
-	}
+	needUpdate = false;
 
 	delay(1000);
 }
@@ -65,6 +68,7 @@ void leftPinPressed() {
 	if (millis() - leftTime >= MIN_TIME) {
 		leftMachine++;
 		leftTime = millis();
+		needUpdate = true;
 	}
 }
 
@@ -73,6 +77,7 @@ void rightPinPressed() {
 	if (millis() - rightTime >= MIN_TIME) {
 		rightMachine++;
 		rightTime = millis();
+		needUpdate = true;
 	}
 }
 
