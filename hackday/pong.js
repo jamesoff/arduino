@@ -28,18 +28,14 @@ var canvas = document.getElementById("canvas"),
 		particles = [], // Array containing particles
 		ball = {}, // Ball object
 		paddles = [2], // Array containing two paddles
-		mouse = {}, // Mouse object to store it's current position
-		points = 0, // Varialbe to store points
+		pointsLeft = 0, // Varialbe to store points
+		pointsRight = 0,
 		fps = 60, // Max FPS (frames per second)
-		particlesCount = 20, // Number of sparks when ball strikes the paddle
-		flag = 0, // Flag variable which is changed on collision
-		particlePos = {}, // Object to contain the position of collision 
-		multipler = 1, // Varialbe to control the direction of sparks
-		startBtn = {}, // Start button object
-		restartBtn = {}, // Restart button object
 		over = 0, // flag varialbe, cahnged when the game is over
 		init, // variable to initialize animation
-		paddleHit;
+		paddleHit,
+		throwGameLeft,
+		throwGameRight;
 
 
 // Set the canvas's height and width to full screen
@@ -128,6 +124,10 @@ function update() {
 			else {
 				speed = 3;
 			}
+			// override if we're losing
+			if (throwGameRight) {
+				speed = 1;
+			}
 		}
 		else {
 			if (p.pos == "left") {
@@ -136,7 +136,19 @@ function update() {
 			else {
 				speed = 3;
 			}
+			if (throwGameLeft) {
+				speed = 1;
+			}
 		}
+
+		if (p.pos == "right" && throwGameRight) {
+			speed = 1;
+		}
+
+		if (p.pos == "left" && throwGameLeft) {
+			speed = 1;
+		}
+
 
 		centre = p.y + p.h/2;
 
@@ -261,7 +273,7 @@ function updateScore() {
 	ctx.font = "16px Arial, sans-serif";
 	ctx.textAlign = "left";
 	ctx.textBaseline = "top";
-	ctx.fillText("Score: " + points, 20, 20 );
+	ctx.fillText("Left: " + pointsLeft + ", right: " + pointsRight, 20, 20 );
 }
 
 // Function to run when the game overs
@@ -270,16 +282,26 @@ function gameOver() {
 	ctx.font = "20px Arial, sans-serif";
 	ctx.textAlign = "center";
 	ctx.textBaseline = "middle";
-	ctx.fillText("Game Over - You scored "+points+" points!", W/2, H/2 + 25 );
+	ctx.fillText("oops :(", W/2, H/2 + 25 );
+
+	if (throwGameRight) {
+		pointsLeft++;
+	}
+	
+	if (throwGameLeft) {
+		pointsRight++;
+	}
+
 	
 	// Stop the Animation
 	cancelRequestAnimFrame(init);
-	
-	// Set the over flag
-	over = 1;
-	
-	// Show the restart button
-	restartBtn.draw();
+
+	throwGameLeft = throwGameRight = 0;
+	setTimeout(animloop, 5000);
+	ball.x = 50;
+	ball.y = 50;
+	ball.vx = 4;
+	ball.vy = 8;
 }
 
 // Function for running the whole animation
@@ -291,39 +313,21 @@ function animloop() {
 // Function to execute at startup
 function startScreen() {
 	draw();
-	//startBtn.draw();
 }
 
-// On button click (Restart and start)
-function btnClick(e) {
-	
-	// Variables for storing mouse position on click
-	var mx = e.pageX,
-			my = e.pageY;
-	
-	// Click start button
-	if(mx >= startBtn.x && mx <= startBtn.x + startBtn.w) {
-		animloop();
-		
-		// Delete the start button after clicking it
-		startBtn = {};
-	}
-	
-	// If the game is over, and the restart button is clicked
-	if(over == 1) {
-		if(mx >= restartBtn.x && mx <= restartBtn.x + restartBtn.w) {
-			ball.x = 20;
-			ball.y = 20;
-			points = 0;
-			ball.vx = 4;
-			ball.vy = 8;
-			animloop();
-			
-			over = 0;
+function checkScores() {
+	console.log("checking scores");
+	$.getJSON("scores.json", function(data) {
+		if (data.left > pointsLeft) {
+			throwGameRight = 1;
 		}
-	}
+		else if (data.right > pointsRight) {
+			throwGameLeft = 1;
+		}
+	});
 }
 
 // Show the start screen
 startScreen();
 animloop();
+setInterval(checkScores, 5000);

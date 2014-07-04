@@ -42,6 +42,7 @@ def collect_serial():
                 {"values": leftData, "key": "left"},
                 {"values": rightData, "key": "right"}
                 ], open("data.json", "w"))
+            json.dump(newdata, open("scores.json", "w"))
         except Exception, e:
             print e
             pass
