@@ -41,12 +41,6 @@ var canvas = document.getElementById("canvas"),
 		init, // variable to initialize animation
 		paddleHit;
 
-// Add mousemove and mousedown events to the canvas
-//canvas.addEventListener("mousemove", trackPosition, true);
-//canvas.addEventListener("mousedown", btnClick, true);
-
-// Initialise the collision sound
-//collision = document.getElementById("collide");
 
 // Set the canvas's height and width to full screen
 canvas.width = W;
@@ -61,19 +55,22 @@ function paintCanvas() {
 // Function for creating paddles
 function Paddle(pos) {
 	// Height and width
-	this.h = 10;
-	this.w = 150;
+	this.h = 150;
+	this.w = 10;
 	
 	// Paddle's position
-	this.x = W/2 - this.w/2;
-	this.y = (pos == "top") ? 0 : H - this.h;
+	this.x = (pos == "left") ? 0 : W - this.w;
+
+	this.y = (pos == "right") ? 0 : H - this.h;
+	this.y = 0;
+
 	this.pos = pos;
 	
 }
 
 // Push two new paddles into the paddles[] array
-paddles.push(new Paddle("bottom"));
-paddles.push(new Paddle("top"));
+paddles.push(new Paddle("left"));
+paddles.push(new Paddle("right"));
 
 // Ball object
 ball = {
@@ -94,57 +91,6 @@ ball = {
 };
 
 
-// Start Button object
-startBtn = {
-	w: 100,
-	h: 50,
-	x: W/2 - 50,
-	y: H/2 - 25,
-	
-	draw: function() {
-		ctx.strokeStyle = "white";
-		ctx.lineWidth = "2";
-		ctx.strokeRect(this.x, this.y, this.w, this.h);
-		
-		ctx.font = "18px Arial, sans-serif";
-		ctx.textAlign = "center";
-		ctx.textBaseline = "middle";
-		ctx.fillStlye = "white";
-		ctx.fillText("Start", W/2, H/2 );
-	}
-};
-
-// Restart Button object
-restartBtn = {
-	w: 100,
-	h: 50,
-	x: W/2 - 50,
-	y: H/2 - 50,
-	
-	draw: function() {
-		ctx.strokeStyle = "white";
-		ctx.lineWidth = "2";
-		ctx.strokeRect(this.x, this.y, this.w, this.h);
-		
-		ctx.font = "18px Arial, sans-serif";
-		ctx.textAlign = "center";
-		ctx.textBaseline = "middle";
-		ctx.fillStlye = "white";
-		ctx.fillText("Restart", W/2, H/2 - 25 );
-	}
-};
-
-// Function for creating particles object
-function createParticles(x, y, m) {
-	this.x = x || 0;
-	this.y = y || 0;
-	
-	this.radius = 1.2;
-	
-	this.vx = -1.5 + Math.random()*3;
-	this.vy = m * Math.random()*1.5;
-}
-
 // Draw everything on canvas
 function draw() {
 	paintCanvas();
@@ -159,23 +105,6 @@ function draw() {
 	update();
 }
 
-// Function to increase speed after every 5 points
-function increaseSpd() {
-	return;
-
-	if(points % 4 == 0) {
-		if(Math.abs(ball.vx) < 15) {
-			ball.vx += (ball.vx < 0) ? -1 : 1;
-			ball.vy += (ball.vy < 0) ? -2 : 2;
-		}
-	}
-}
-
-// Track the position of mouse cursor
-function trackPosition(e) {
-	mouse.x = e.pageX;
-	mouse.y = e.pageY;
-}
 
 // Function to update positions, score and everything.
 // Basically, the main game logic is defined here
@@ -184,55 +113,45 @@ function update() {
 	// Update scores
 	updateScore(); 
 	
-	// Move the paddles on mouse move
-	/*
-	if(mouse.x && mouse.y) {
-		for(var i = 1; i < paddles.length; i++) {
-			p = paddles[i];
-			p.x = mouse.x - p.w/2;
-		}		
-	}
-	*/
-	
 	// Move the ball
 	ball.x += ball.vx;
 	ball.y += ball.vy;
 
 	// Move the paddles
-	for (var i = 0; i < paddles.length; i++) {
+	for (var i = 1; i < paddles.length; i++) {
 		p = paddles[i];
 		
-		if (ball.vy > 0) {
-			if (p.pos == "bottom") {
-				speed = 5;
+		if (ball.vx > 0) {
+			if (p.pos == "right") {
+				speed = 7;
 			}
 			else {
 				speed = 3;
 			}
 		}
 		else {
-			if (p.pos == "top") {
-				speed = 5;
+			if (p.pos == "left") {
+				speed = 7;
 			}
 			else {
 				speed = 3;
 			}
 		}
 
-		centre = p.x + p.w/2;
+		centre = p.y + p.h/2;
 
-		if (centre < ball.x + 10) {
-			p.x += speed;
+		if (centre < ball.y + 10) {
+			p.y += speed;
 		}
-		else if (centre > ball.x - 10) {
-			p.x -= speed;
+		else if (centre > ball.y - 10) {
+			p.y -= speed;
 		}
 
-		if (p.x < 0) {
-			p.x = 0;
+		if (p.y < 0) {
+			p.y = 0;
 		}
-		if (p.x + p.w > W) {
-			p.x = W - p.w;
+		if (p.y + p.h > H) {
+			p.y = H - p.h;
 		}
 	}
 	
@@ -258,57 +177,40 @@ function update() {
 	else {
 		// Collide with walls, If the ball hits the top/bottom,
 		// walls, run gameOver() function
-		if(ball.y + ball.r > H) {
-			ball.y = H - ball.r;
+		if (ball.x + ball.r > W) {
+			ball.x = W - ball.r;
 			gameOver();
 		} 
-		
-		else if(ball.y < 0) {
-			ball.y = ball.r;
+		else if (ball.x < 0) {
+			ball.x = ball.r;
 			gameOver();
 		}
 		
 		// If ball strikes the vertical walls, invert the 
 		// x-velocity vector of ball
-		if(ball.x + ball.r > W) {
-			ball.vx = -ball.vx;
-			ball.x = W - ball.r;
+		if(ball.y + ball.r > H) {
+			ball.vy = -ball.vy;
+			ball.y = H - ball.r;
 		}
 		
-		else if(ball.x -ball.r < 0) {
-			ball.vx = -ball.vx;
-			ball.x = ball.r;
+		else if(ball.y -ball.r < 0) {
+			ball.vy = -ball.vy;
+			ball.y = ball.r;
 		}
 	}
-	
-	
-	
-	/*
-	// If flag is set, push the particles
-	if(flag == 1) { 
-		for(var k = 0; k < particlesCount; k++) {
-			particles.push(new createParticles(particlePos.x, particlePos.y, multiplier));
-		}
-	}	
-	
-	// Emit particles/sparks
-	emitParticles();
-	
-	// reset flag
-	flag = 0;
-	*/
 }
 
 //Function to check collision between ball and one of
 //the paddles
 function collides(b, p) {
-	if(b.x + ball.r >= p.x && b.x - ball.r <=p.x + p.w) {
-		if(b.y >= (p.y - p.h) && p.y > 0){
+	if (b.y + ball.r >= p.y && 
+			b.y - ball.r <= p.y + p.h) {
+		if(b.x >= (p.x - p.w) && p.x > 0){
 			paddleHit = 1;
 			return true;
 		}
 		
-		else if(b.y <= p.h && p.y == 0) {
+		else if(b.x <= p.w && p.x == 0) {
 			paddleHit = 2;
 			return true;
 		}
@@ -319,33 +221,17 @@ function collides(b, p) {
 
 //Do this when collides == true
 function collideAction(ball, p) {
-	ball.vy = -ball.vy;
+	ball.vx = -ball.vx;
 	
 	if(paddleHit == 1) {
-		ball.y = p.y - p.h;
-		particlePos.y = ball.y + ball.r;
+		ball.x = p.x - p.w;
 		multiplier = -1;	
 	}
 	
 	else if(paddleHit == 2) {
-		ball.y = p.h + ball.r;
-		particlePos.y = ball.y - ball.r;
+		ball.x = p.w + ball.r;
 		multiplier = 1;	
 	}
-	
-	//points++;
-	//increaseSpd();
-	
-	if(collision) {
-		if(points > 0) 
-			collision.pause();
-		
-		collision.currentTime = 0;
-		collision.play();
-	}
-	
-	particlePos.x = ball.x;
-	flag = 1;
 }
 
 // Function for emitting particles
