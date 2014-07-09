@@ -124,10 +124,6 @@ function update() {
 			else {
 				speed = 3;
 			}
-			// override if we're losing
-			if (throwGameRight) {
-				speed = 1;
-			}
 		}
 		else {
 			if (p.pos == "left") {
@@ -135,9 +131,6 @@ function update() {
 			}
 			else {
 				speed = 3;
-			}
-			if (throwGameLeft) {
-				speed = 1;
 			}
 		}
 
@@ -319,9 +312,11 @@ function checkScores() {
 	console.log("checking scores");
 	$.getJSON("scores.json", function(data) {
 		if (data.left > pointsLeft) {
+			console.log("throwing game right");
 			throwGameRight = 1;
 		}
 		else if (data.right > pointsRight) {
+			console.log("throwing game left");
 			throwGameLeft = 1;
 		}
 	});
